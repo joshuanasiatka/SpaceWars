@@ -111,18 +111,22 @@ public class MainActivity extends ActionBarActivity implements View.OnTouchListe
                             switch (btn) {
                                 case 1: //up
                                     SpaceWars.cy -= 20;
+                                    SpaceWars.dr = SpaceWars.Direction.NORTH;
                                     regenerate();
                                     break;
                                 case 2: //down
                                     SpaceWars.cy += 20;
+                                    SpaceWars.dr = SpaceWars.Direction.SOUTH;
                                     regenerate();
                                     break;
                                 case 3: //left
                                     SpaceWars.cx -= 20;
+                                    SpaceWars.dr = SpaceWars.Direction.EAST;
                                     regenerate();
                                     break;
                                 case 4: //right
                                     SpaceWars.cx += 20;
+                                    SpaceWars.dr = SpaceWars.Direction.WEST;
                                     regenerate();
                                     break;
                             }
