@@ -137,7 +137,7 @@ public class MainActivity extends ActionBarActivity implements View.OnTouchListe
                 case R.id.fireBtn:
                     Log.d("ACTION", "FIRE BUTTON");
                     SpaceWars.missileFlag = true;
-                    pewpew.start();
+                    pewpew();
                     break;
             }
         } else {
@@ -192,5 +192,14 @@ public class MainActivity extends ActionBarActivity implements View.OnTouchListe
             mServ.resumeMusic();
             misPlaying = true;
         }
+    }
+
+    void pewpew() {
+        if (pewpew != null) {
+            pewpew.release();
+            pewpew = null;
+        }
+        pewpew = MediaPlayer.create(this, R.raw.pewpew);
+        pewpew.start();
     }
 }

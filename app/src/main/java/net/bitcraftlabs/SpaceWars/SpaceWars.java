@@ -32,10 +32,12 @@ public class SpaceWars extends View {
     int r  = 100;
 
     //Ship
-    public static Direction dr = Direction.SOUTH;
-
+    public static Direction dr = Direction.NORTH;
+    boolean setup = true;
     ArrayList<Missile> ml = new ArrayList<Missile>();
     ArrayList<Missile> MTemp = new ArrayList<Missile>();
+
+    boolean dualFire = true;
 
     //Missile
     int mx = 0;
@@ -59,6 +61,14 @@ public class SpaceWars extends View {
         super.onDraw(c);
         w = getWidth();
         h = getHeight();
+
+        if (setup) {
+            cx = (w / 2) - (r / 2);
+            cy = h;
+
+            setup = false;
+        }
+
         Point pt = new Point();
         pt.set(cx,cy);
 
@@ -83,6 +93,11 @@ public class SpaceWars extends View {
             }
             paint.setColor(Color.WHITE);
             c.drawCircle(m.mx, m.my, m.mr, paint);
+
+            if (dualFire) {
+                c.drawCircle(m.mx+r, m.my, m.mr, paint);
+            }
+
             m.w = w;
             m.h = h;
             m.missileFire();
@@ -92,7 +107,7 @@ public class SpaceWars extends View {
             vx = 0;
             cx -= w - vel;
         }
-        if (cx < r) {// left bounce
+        if (cx + r < r) {// left bounce
             vx = 0;
             cx += w - vel;
         }
@@ -100,7 +115,7 @@ public class SpaceWars extends View {
             vy = 0;
             cy += h - vel;
         }
-        if (cy + r > h) { // bottom bounce
+        if (cy + r > h + r) { // bottom bounce
             vy = 0;
             cy -= h - vel;
         }
@@ -142,6 +157,8 @@ public class SpaceWars extends View {
 
     public void fireAllDaThings() {
         if (missileFlag) {
+            int oldR = r;
+            if (dualFire) r = 0;
             Missile m = new Missile();
             switch (dr) {
                 case NORTH:
@@ -175,6 +192,7 @@ public class SpaceWars extends View {
 
             }
             ml.add(m);
+            r = oldR;
         }
     }
 }
