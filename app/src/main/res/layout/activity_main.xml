@@ -51,4 +51,13 @@
         android:layout_above="@+id/downBtn"
         android:layout_centerHorizontal="true" />
 
+    <Button
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/fire"
+        android:id="@+id/fireBtn"
+        android:layout_alignTop="@+id/upBtn"
+        android:layout_toRightOf="@+id/rightBtn"
+        android:layout_toEndOf="@+id/rightBtn" />
+
 </RelativeLayout>

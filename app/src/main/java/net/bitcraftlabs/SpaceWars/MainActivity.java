@@ -1,6 +1,9 @@
 package net.bitcraftlabs.SpaceWars;
 
+import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.content.*;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -11,6 +14,9 @@ import android.webkit.ConsoleMessage;
 import android.widget.Button;
 
 public class MainActivity extends ActionBarActivity implements View.OnTouchListener {
+
+    Context context = this;
+    MediaPlayer pewpew;
 
     private Thread timingThread;
     private boolean StillWanted;
@@ -30,45 +36,17 @@ public class MainActivity extends ActionBarActivity implements View.OnTouchListe
         left.setOnTouchListener(this);
         Button right = (Button) findViewById(R.id.rightBtn);
         right.setOnTouchListener(this);
+        Button fire = (Button) findViewById(R.id.fireBtn);
+        fire.setOnTouchListener(this);
+
+        Intent music = new Intent();
+        music.setClass(this, MusicService.class);
+        startService(music);
+
+        pewpew = MediaPlayer.create(context, R.raw.pewpew);
 
         t.start();
     }
-
-    @Override
-    public void onResume(){
-        super.onResume();
-        Log.d("STATUS","in onResume");
-        // create timing thread
-        timingThread = new Thread() {
-            public void run() {
-                try {
-                    while (StillWanted) {
-                        sleep(60);
-                        View v = findViewById(R.id.table);
-                        //System.out.println("Timing thread "+getId()+ " View "+v.toString());
-                        v.postInvalidate();
-                    }
-                } catch (InterruptedException e) {
-                    Log.d("STATUS","Thread "+getId()+ "interrupted");
-                    e.printStackTrace();
-                }
-
-            }
-
-
-        };
-        StillWanted = true;
-        timingThread.start();
-    }
-
-    @Override
-    public void onPause(){
-        super.onPause();
-        Log.d("STATUS","in onPause ");
-        StillWanted = false;
-    }
-
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -103,7 +81,7 @@ public class MainActivity extends ActionBarActivity implements View.OnTouchListe
         public void run() {
             try {
                 while (!isInterrupted()) {
-                    Thread.sleep(80);
+                    Thread.sleep(30);
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
@@ -112,24 +90,21 @@ public class MainActivity extends ActionBarActivity implements View.OnTouchListe
                                 case 1: //up
                                     SpaceWars.cy -= 20;
                                     SpaceWars.dr = SpaceWars.Direction.NORTH;
-                                    regenerate();
                                     break;
                                 case 2: //down
                                     SpaceWars.cy += 20;
                                     SpaceWars.dr = SpaceWars.Direction.SOUTH;
-                                    regenerate();
                                     break;
                                 case 3: //left
                                     SpaceWars.cx -= 20;
                                     SpaceWars.dr = SpaceWars.Direction.EAST;
-                                    regenerate();
                                     break;
                                 case 4: //right
                                     SpaceWars.cx += 20;
                                     SpaceWars.dr = SpaceWars.Direction.WEST;
-                                    regenerate();
                                     break;
                             }
+                            regenerate();
                         }
                     });
                 }
@@ -159,10 +134,63 @@ public class MainActivity extends ActionBarActivity implements View.OnTouchListe
                     Log.d("ACTION", "RIGHT BUTTON");
                     btn = 4;
                     break;
+                case R.id.fireBtn:
+                    Log.d("ACTION", "FIRE BUTTON");
+                    SpaceWars.missileFlag = true;
+                    pewpew.start();
+                    break;
             }
         } else {
             btn = 0;
         }
-        return true;
+        return false;
+    }
+
+    private boolean misPlaying = true;
+    private boolean mIsBound = false;
+    private static MusicService mServ = new MusicService();
+
+    private ServiceConnection Scon = new ServiceConnection() {
+
+        public void onServiceConnected(ComponentName name, IBinder binder) {
+            mServ = ((MusicService.ServiceBinder) binder).getService();
+        }
+
+        public void onServiceDisconnected(ComponentName name) {
+            mServ = null;
+        }
+    };
+
+    void doBindService() {
+        bindService(new Intent(this, MusicService.class),
+                Scon, Context.BIND_AUTO_CREATE);
+        mIsBound = true;
+    }
+
+    void doUnbindService() {
+        if (mIsBound) {
+            unbindService(Scon);
+            mIsBound = false;
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        // TODO Auto-generated method stub
+        super.onPause();
+        if (misPlaying) {
+            mServ.pauseMusic();
+            misPlaying = false;
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        // TODO Auto-generated method stub
+        super.onResume();
+        if (!misPlaying) {
+            mServ.resumeMusic();
+            misPlaying = true;
+        }
     }
 }

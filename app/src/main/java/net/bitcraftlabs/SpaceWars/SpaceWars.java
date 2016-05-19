@@ -7,7 +7,10 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.Point;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.View;
+
+import java.util.ArrayList;
 
 public class SpaceWars extends View {
 //    float cx = 0;  // x, y coordinates of center of Ship.
@@ -16,18 +19,32 @@ public class SpaceWars extends View {
 //    int color = Color.RED;
 //    int color = ContextCompat.getColor(context, R.color.dark);
 //    int myColor = context.getResources().getColor(edu.fitchburgstate.staylor.R.color.white);
+
+    //Canvas
+    public static int w, h;
+
     Paint paint = new Paint();
     public static int vx = 0;
     public static int vy = 0;
     public static int cx = 10;
     public static int cy = 10;
+    public static int vel = 10;
     int r  = 100;
 
     //Ship
     public static Direction dr = Direction.SOUTH;
-    
-//    public Ship b = new Ship();
-//    private Ship[] ShipList = {new Ship(), new Ship(), new Ship()};
+
+    ArrayList<Missile> ml = new ArrayList<Missile>();
+    ArrayList<Missile> MTemp = new ArrayList<Missile>();
+
+    //Missile
+    int mx = 0;
+    int my = 0;
+    int mr = 0;
+    int mv = 10;
+    public static boolean missileFlag = false;
+
+    public static Missile md = new Missile();
 
     public SpaceWars(Context context) {
         super(context);
@@ -40,67 +57,76 @@ public class SpaceWars extends View {
     @Override
     public void onDraw(Canvas c) {
         super.onDraw(c);
-//        int w = getWidth();
-//        int h = getHeight();
+        w = getWidth();
+        h = getHeight();
         Point pt = new Point();
         pt.set(cx,cy);
 
         Paint p = new Paint();
         p.setStyle(Paint.Style.FILL);
         p.setColor(Color.RED);
-        Path path = tri(pt, r, dr);
+        Path path = tri(pt, r);
         c.drawPath(path, p);
-//        // play with the physics
-//        cx += vx;
-//        cy += vy;
-//
-//        //right bounce
-//        if (cx + r > w) {
-////            vx = -Math.abs(vx);
-//            vx = 0;
-//            cx -= 10;
-//        }
-//        if (cx < r) {// left bounce
-////            vx = Math.abs(vx);
-//            vx = 0;
-//            cx += 10;
-//        }
-//        if (cy < r) { // top bounce
-////            vy = Math.abs(vy);
-//            vy = 0;
-//            cy += 10;
-//        }
-//        if (cy + r > h) { // bottom bounce
-////            vy = -Math.abs(vy);
-//            vy = 0;
-//            cy -= 10;
-//        }
+        // play with the physics
+        cx += vx;
+        cy += vy;
 
-//        paint.setColor(Color.RED);
-//        c.drawCircle(cx, cy, r, paint);
+        //Missile
+        paint.setColor(Color.WHITE);
+        fireAllDaThings();
+
+        ml.removeAll(MTemp);
+
+        for (Missile m: ml){
+            if (m.destroyed) {
+                MTemp.add(m);
+            }
+            paint.setColor(Color.WHITE);
+            c.drawCircle(m.mx, m.my, m.mr, paint);
+            m.w = w;
+            m.h = h;
+            m.missileFire();
+        }
+        //right bounce
+        if (cx + r > w) {
+            vx = 0;
+            cx -= w - vel;
+        }
+        if (cx < r) {// left bounce
+            vx = 0;
+            cx += w - vel;
+        }
+        if (cy < r) { // top bounce
+            vy = 0;
+            cy += h - vel;
+        }
+        if (cy + r > h) { // bottom bounce
+            vy = 0;
+            cy -= h - vel;
+        }
     }
 
     public enum Direction {
-        NORTH, SOUTH, EAST, WEST;
+        NORTH, SOUTH, EAST, WEST, NONE;
     }
 
-    public Path tri (Point p1, int width, Direction direction){
+    public Path tri (Point p1, int width){
 
         Point p2 = null, p3 = null;
 
-        if (direction == Direction.NORTH) {
+        if (dr == Direction.NORTH) {
             p2 = new Point(p1.x + width, p1.y);
             p3 = new Point(p1.x + (width / 2), p1.y - width);
         }
-        else if (direction == Direction.SOUTH) {
+        else if (dr == Direction.SOUTH) {
             p2 = new Point(p1.x + width,p1.y);
             p3 = new Point(p1.x + (width / 2), p1.y + width);
         }
-        else if (direction == Direction.EAST) {
+        else if (dr == Direction.EAST) {
             p2 = new Point(p1.x, p1.y + width);
             p3 = new Point(p1.x - width, p1.y + (width / 2));
         }
-        else if (direction == Direction.WEST) {
+        else if (dr == Direction.WEST) {
             p2 = new Point(p1.x, p1.y + width);
             p3 = new Point(p1.x + width, p1.y + (width / 2));
         }
@@ -112,5 +138,43 @@ public class SpaceWars extends View {
 
         return path;
 
+    }
+
+    public void fireAllDaThings() {
+        if (missileFlag) {
+            Missile m = new Missile();
+            switch (dr) {
+                case NORTH:
+                    m.mx = cx + r/2;
+                    m.my = cy - r;
+                    m.mr = 5;
+                    m.mDr = Missile.Direction.NORTH;
+                    missileFlag = false;
+                    break;
+                case SOUTH:
+                    m.mx = cx + r/2;
+                    m.my = cy + r;
+                    m.mr = 5;
+                    m.mDr = Missile.Direction.SOUTH;
+                    missileFlag = false;
+                    break;
+                case EAST:
+                    m.mx = cx - r;
+                    m.my = cy + r/2;
+                    m.mr = 5;
+                    m.mDr = Missile.Direction.EAST;
+                    missileFlag = false;
+                    break;
+                case WEST:
+                    m.my = cy + r/2;
+                    m.mx = cx + r;
+                    m.mr = 5;
+                    m.mDr = Missile.Direction.WEST;
+                    missileFlag = false;
+                    break;
+
+            }
+            ml.add(m);
+        }
     }
 }
